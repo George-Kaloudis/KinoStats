@@ -139,6 +139,32 @@ def loadHistoryDraws(amount=100):
     print '-' * 50
         
         
+#This function sort the list and shows the top values. The default value is 10
+def rankResults(a ,b=10):
+    rankOrder = [0] * len(a)
+    rankValues = [0] * len(a)
+    for i in range(0,len(a)-1):
+        rankValues[i] = a[i]
+    k = 0
+    while k < len(a):
+        rankOrder[k] = k + 1
+        k = k + 1
+    for i in range(0, len(a) - 1):
+        for j in range(len(a) - 1, i, -1):
+            if rankValues[j-1] < rankValues[j]:
+                temp = rankValues[j-1]
+                rankValues[j-1] = rankValues[j]
+                rankValues[j] = temp
+                temp = rankOrder[j-1]
+                rankOrder[j-1] = rankOrder[j]
+                rankOrder[j] = temp
+    m=0
+    print '-' * 50
+    print 'The Top', b, 'numbers in the lottery are:'
+    print '-' * 50
+    while m < b:
+        print m + 1,':', rankOrder[m], '-', rankValues[m] / float(drawNo) * 100, '%'
+        m = m + 1
 '''
 This is the main structure of the program
 '''
@@ -200,4 +226,8 @@ if mode == '1':
         except KeyboardInterrupt:
             break
 
-print 'Program finished'
+print 'Gathering finished'
+
+topAmount = raw_input('How many top numbers do you want to view?(Number)\n')
+topAmount = int(topAmount)
+rankResults(numbers, topAmount)
