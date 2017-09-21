@@ -10,7 +10,7 @@ lnum = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0]
 drawNo = 0
 Conection = True
 
-
+#I
 
 def internet(host="8.8.8.8", port=53, timeout=5):
     try:
@@ -86,4 +86,4 @@ while True:
             print 'Trying again...'
             time.sleep(10)
     except KeyboardInterrupt:
-        break  
+        break
