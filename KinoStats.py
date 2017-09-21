@@ -12,7 +12,10 @@ numbers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 lnum = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0]
 drawNo = 0
 Connection = True
-LastDraw=0
+LastDraw = 0
+uniqueDraw = True
+mode = 0
+modechange = '0'
 
 
 #This function checks to see if you have connection to the internet
@@ -71,54 +74,130 @@ def getDraw():
     global LastDraw
     u = urllib.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
     doc = xmltodict.parse(u)
+    results = doc['draw']['result']
+    LastDraw = int(doc['draw']['drawNo'])
+    i = 0
+    print '-' * 50
+    print 'Winning Numbers:'
+    while i<20 :
+        lnum[i] = int(results[i])
+        addCounter(lnum[i])
+        print lnum[i]
+        i = i + 1
+    print '-' * 50
+    
+    
+#This function checks to see if the current draw is the same with the last one            
+def checkLastDraw():
+    global LastDraw
+    u = urllib.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
+    doc = xmltodict.parse(u)
     if LastDraw!=int(doc['draw']['drawNo']):
-        results = doc['draw']['result']
-        LastDraw = int(doc['draw']['drawNo'])
-        i=0
-        while i<20 :
-            lnum[i] = int(results[i])
-            addCounter(lnum[i])
-            i = i + 1
+        return True
     else:
-        print 'This draw has been already stated\nTrying again...'
-        time.sleep(10)
-        getDraw()
-            
+        return False
+        
 
 #This fuction show the current percentage of each number
 def showresults():
+    global drawNo
+    print 'Showing result for', drawNo, 'draws.'
+    time.sleep(2)
+    print '-' * 50
     j=0
     while j<80 :
         percent = numbers[j] / float(drawNo) * 100
         print j + 1, ":","{0:.2f}".format(percent), "%"
         j = j + 1
-    print "-"*50
+    print "-" * 50
 
 
 #This function loads as much draws requested from the website instead of loading your last data. It overrides your last data but then keeps working normally
-#def loadHistoryDraws(amount):
-
-
-
-    
+def loadHistoryDraws(amount=100):
+    global LastDraw
+    global drawNo
+    drawNo = amount
+    u = urllib.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
+    doc = xmltodict.parse(u)
+    LastDraw = int(doc['draw']['drawNo'])
+    i = 0
+    while i < amount :
+        FirstDraw = LastDraw - amount + 1 + i
+        FirstDrawStr = str(FirstDraw)
+        opapUrl = 'http://applications.opap.gr/DrawsRestServices/kino/' + FirstDrawStr + '.xml'
+        usite = urllib.urlopen(opapUrl)
+        docsite = xmltodict.parse(usite)
+        results = docsite['draw']['result']
+        rNo= i + 1
+        print rNo, 'Out of', amount
+        i = i + 1
+        j = 0
+        while j<20 :
+            lnum[j] = int(results[j])
+            addCounter(lnum[j])
+            j = j + 1
+    print '-' * 50
+        
+        
 '''
 This is the main structure of the program
 '''
 
-loadData()
-while True:
-    try:
-        Connection = internet()
-        if Connection == True:
-            getDraw()
-            drawNo = drawNo + 1
-            showresults()
-            saveData()
-            time.sleep(300)
-        else:
-            print 'No connection to the internet\nTrying again...'
-            time.sleep(10)
-    except KeyboardInterrupt:
-        break
+print 'Welcome to KinoStats!'
+mode = raw_input('Would you like to monitor the draws live or download previous results?\nExample: last 100 results, the amount is asked.\nIf you choose download mode you can continue monitoring after if you want\n(1 for monitor mode, 2 for download mode)\n')
+if mode == '2':
+    amount = raw_input('How many draws would you like to load?(If you do not enter a value it will be set as default, which is 100)')
+    if amount == "":
+        amount = 100
+    amount = int(amount)
+    
+    while True:
+        try:    
+            Connection = internet()
+            if Connection == True:
+                print 'Connected to the internet.'
+                loadHistoryDraws(amount)
+                showresults()
+                saveData()
+                break
+            else:
+                print 'No connection to the internet\nTrying again...'
+                print '-' * 50
+                time.sleep(10)
+                
+        except KeyboardInterrupt:
+            break
+
+    modechange = raw_input('Would you like to continue monitoring?(1 for Yes,2 for No)\n')
+    if modechange == '1':
+        mode = '1'
+    
+    
+if modechange == '0':
+    loadData()
+
+if mode == '1':
+    while True:
+        try:
+            Connection = internet()
+            if Connection == True:
+                uniqueDraw = checkLastDraw()
+                print 'Connected to the internet.'
+                if uniqueDraw == True:
+                    getDraw()
+                    drawNo = drawNo + 1
+                    showresults()
+                    saveData()
+                    time.sleep(300)
+                else:
+                    print 'This draw has been already stated\nTrying again...'
+                    print '-' * 50
+                    time.sleep(20)
+            else:
+                print 'No connection to the internet\nTrying again...'
+                print '-' * 50
+                time.sleep(10)
+        except KeyboardInterrupt:
+            break
 
 print 'Program finished'
