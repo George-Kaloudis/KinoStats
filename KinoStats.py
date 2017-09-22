@@ -84,7 +84,6 @@ def getDraw():
         addCounter(lnum[i])
         print lnum[i]
         i = i + 1
-    print '-' * 50
     
     
 #This function checks to see if the current draw is the same with the last one            
@@ -140,7 +139,7 @@ def loadHistoryDraws(amount=100):
         
         
 #This function sort the list and shows the top values. The default value is 10
-def rankResults(a ,b=10):
+def rankResults(a ,b=12):
     rankOrder = [0] * len(a)
     rankValues = [0] * len(a)
     for i in range(0,len(a)-1):
@@ -163,8 +162,36 @@ def rankResults(a ,b=10):
     print 'The Top', b, 'numbers in the lottery are:'
     print '-' * 50
     while m < b:
-        print m + 1,':', rankOrder[m], '-', rankValues[m] / float(drawNo) * 100, '%'
+        percent = rankValues[m] / float(drawNo) * 100
+        print m + 1,':', rankOrder[m], '-',"{0:.2f}".format(percent), '%'
         m = m + 1
+        
+        
+#This function deletes the first entry if there is a new one keeping the amount the same
+def fixedNumberMonitor():
+    global amount
+    global LastDraw
+    u = urllib.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
+    doc = xmltodict.parse(u)
+    RemovedDraw = LastDraw - amount
+    RemovedDrawStr = str(RemovedDraw)
+    opapUrl = 'http://applications.opap.gr/DrawsRestServices/kino/' + RemovedDrawStr + '.xml'
+    usite = urllib.urlopen(opapUrl)
+    docsite = xmltodict.parse(usite)
+    results = docsite['draw']['result']
+    j = 0
+    while j<20 :
+        lnum[j] = int(results[j])
+        remCounter(lnum[j])
+        j = j + 1
+    print '-' * 50
+
+
+#This function removes a counter
+def remCounter(nr):
+    numbers[nr - 1] = numbers[nr - 1] - 1
+    
+    
 '''
 This is the main structure of the program
 '''
@@ -184,6 +211,7 @@ if mode == '2':
                 print 'Connected to the internet.'
                 loadHistoryDraws(amount)
                 showresults()
+                rankResults(numbers)
                 saveData()
                 break
             else:
@@ -194,8 +222,8 @@ if mode == '2':
         except KeyboardInterrupt:
             break
 
-    modechange = raw_input('Would you like to continue monitoring?(1 for Yes,2 for No)\n')
-    if modechange == '1':
+    modechange = raw_input('Would you like to continue monitoring?(1 for Yes,2 for No, 3 for fixed amount monitoring)\n')
+    if modechange == '1' or modechange == '3':
         mode = '1'
     
     
@@ -211,8 +239,12 @@ if mode == '1':
                 print 'Connected to the internet.'
                 if uniqueDraw == True:
                     getDraw()
+                    if modechange == '3':
+                        fixedNumberMonitor()
+                        drawNo = drawNo - 1
                     drawNo = drawNo + 1
                     showresults()
+                    rankResults(numbers)
                     saveData()
                     time.sleep(300)
                 else:
