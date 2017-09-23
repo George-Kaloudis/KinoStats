@@ -10,13 +10,14 @@ from xml.etree.ElementTree import parse
 
 numbers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 lnum = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0]
+ranks = list()
 drawNo = 0
 Connection = True
 LastDraw = 0
 uniqueDraw = True
 mode = 0
 modechange = '0'
-
+datenow = time.asctime()
 
 #This function checks to see if you have connection to the internet
 def internet(host="8.8.8.8", port=53, timeout=5):
@@ -72,6 +73,7 @@ def addCounter(nr):
 #This function contacts the internet page to get the draw numbers
 def getDraw():
     global LastDraw
+    global amount
     u = urllib.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
     doc = xmltodict.parse(u)
     results = doc['draw']['result']
@@ -84,6 +86,8 @@ def getDraw():
         addCounter(lnum[i])
         print lnum[i]
         i = i + 1
+    logger(ranks, amount, 6)
+    logger(ranks, amount, 9)
     
     
 #This function checks to see if the current draw is the same with the last one            
@@ -140,6 +144,7 @@ def loadHistoryDraws(amount=100):
         
 #This function sort the list and shows the top values. The default value is 10
 def rankResults(a ,b=12):
+    global ranks
     rankOrder = [0] * len(a)
     rankValues = [0] * len(a)
     for i in range(0,len(a)-1):
@@ -165,6 +170,7 @@ def rankResults(a ,b=12):
         percent = rankValues[m] / float(drawNo) * 100
         print m + 1,':', rankOrder[m], '-',"{0:.2f}".format(percent), '%'
         m = m + 1
+    ranks = rankOrder
         
         
 #This function deletes the first entry if there is a new one keeping the amount the same
@@ -192,6 +198,43 @@ def remCounter(nr):
     numbers[nr - 1] = numbers[nr - 1] - 1
     
     
+#This function takes a list and makes a dictionary counting the occurance of values
+def histogram(damount, tnfirst):
+    global datenow
+    name = datenow + '_' + str(tnfirst) + '_' + str(damount)
+    ofn = open(name, "r")
+    st2 = ofn.read()
+    s = st2.split()
+    ofn.close()
+    d = dict()
+    for c in s:
+        if c not in d:
+            d[c] = 1
+        else:
+            d[c] = d[c] + 1
+    ofn = open(name, "w")
+    ofn.write(str(d))
+    ofn.close()
+    
+    
+def logger(lista, damount, tnfirst):
+    global datenow
+    amList = [0] * tnfirst 
+    name = datenow + '_' + str(tnfirst) + '_' + str(damount)
+    file = open(name, "a")
+    i = 0
+    while i < tnfirst:
+        amList[i] = lista[i]
+        i = i + 1
+    j = 0
+    for c in lnum:
+        if c in amList:
+            j = j + 1
+    file.write(' ')
+    file.write(str(j))
+    file.close()
+        
+        
 '''
 This is the main structure of the program
 '''
@@ -263,3 +306,5 @@ print 'Gathering finished'
 topAmount = raw_input('How many top numbers do you want to view?(Number)\n')
 topAmount = int(topAmount)
 rankResults(numbers, topAmount)
+histogram(amount, 6)
+histogram(amount, 9)
