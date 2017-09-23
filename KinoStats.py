@@ -88,6 +88,7 @@ def getDraw():
         i = i + 1
     logger(ranks, amount, 6)
     logger(ranks, amount, 9)
+    logger(ranks, amount, 7)
     
     
 #This function checks to see if the current draw is the same with the last one            
@@ -201,7 +202,7 @@ def remCounter(nr):
 #This function takes a list and makes a dictionary counting the occurance of values
 def histogram(damount, tnfirst):
     global datenow
-    name = datenow + '_' + str(tnfirst) + '_' + str(damount)
+    name = str(datenow) +  str(tnfirst) + str(damount)
     ofn = open(name, "r")
     st2 = ofn.read()
     s = st2.split()
@@ -220,7 +221,7 @@ def histogram(damount, tnfirst):
 def logger(lista, damount, tnfirst):
     global datenow
     amList = [0] * tnfirst 
-    name = datenow + '_' + str(tnfirst) + '_' + str(damount)
+    name = str(datenow) + str(tnfirst) + str(damount)
     file = open(name, "a")
     i = 0
     while i < tnfirst:
@@ -308,3 +309,4 @@ topAmount = int(topAmount)
 rankResults(numbers, topAmount)
 histogram(amount, 6)
 histogram(amount, 9)
+histogram(amount, 7)
