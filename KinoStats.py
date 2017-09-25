@@ -86,9 +86,10 @@ def getDraw():
         addCounter(lnum[i])
         print lnum[i]
         i = i + 1
-    logger(ranks, amount, 6)
-    logger(ranks, amount, 9)
-    logger(ranks, amount, 7)
+    if modechange == '3':
+        logger(ranks, amount, 6)
+        logger(ranks, amount, 9)
+        logger(ranks, amount, 7)
     
     
 #This function checks to see if the current draw is the same with the last one            
