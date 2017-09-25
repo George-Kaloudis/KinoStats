@@ -8,14 +8,14 @@ import time
 import socket
 from xml.etree.ElementTree import parse
 
-numbers = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-lnum = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0]
+numbers = [0] * 80
+lnum = [0] * 20
 ranks = list()
 drawNo = 0
 Connection = True
 LastDraw = 0
 uniqueDraw = True
-mode = 0
+mode = '0'
 modechange = '0'
 datenow = time.asctime()
 
@@ -42,11 +42,11 @@ def loadData():
             load = data.split()
             while j<80 :
                 numbers[j] = int(load[j])
-                j = j + 1
+                j += 1
             if j == 80:
                 drawNo = int(load[j])
                 print "Data loaded!"
-                j = j + 1
+                j += 1
                 LastDraw = int(load[j])
                 time.sleep(2)
 
@@ -58,7 +58,7 @@ def saveData():
     while j<80 :
             file.write(str(numbers[j]))
             file.write(" ")
-            j = j + 1
+            j += 1
     file.write(str(drawNo))
     file.write(" ")
     file.write(str(LastDraw))
@@ -67,7 +67,7 @@ def saveData():
 
 #This function adds a counter for the numbers in the draw    
 def addCounter(nr):
-    numbers[nr - 1] = numbers[nr - 1] + 1
+    numbers[nr - 1] += 1
 
 
 #This function contacts the internet page to get the draw numbers
@@ -85,7 +85,7 @@ def getDraw():
         lnum[i] = int(results[i])
         addCounter(lnum[i])
         print lnum[i]
-        i = i + 1
+        i += 1
     if modechange == '3':
         logger(ranks, amount, 6)
         logger(ranks, amount, 9)
@@ -104,7 +104,7 @@ def checkLastDraw():
         
 
 #This fuction show the current percentage of each number
-def showresults():
+def showResults():
     global drawNo
     print 'Showing result for', drawNo, 'draws.'
     time.sleep(2)
@@ -113,7 +113,7 @@ def showresults():
     while j<80 :
         percent = numbers[j] / float(drawNo) * 100
         print j + 1, ":","{0:.2f}".format(percent), "%"
-        j = j + 1
+        j += 1
     print "-" * 50
 
 
@@ -135,12 +135,12 @@ def loadHistoryDraws(amount=100):
         results = docsite['draw']['result']
         rNo= i + 1
         print rNo, 'Out of', amount
-        i = i + 1
+        i += 1
         j = 0
         while j<20 :
             lnum[j] = int(results[j])
             addCounter(lnum[j])
-            j = j + 1
+            j += 1
     print '-' * 50
         
         
@@ -154,7 +154,7 @@ def rankResults(a ,b=12):
     k = 0
     while k < len(a):
         rankOrder[k] = k + 1
-        k = k + 1
+        k += 1
     for i in range(0, len(a) - 1):
         for j in range(len(a) - 1, i, -1):
             if rankValues[j-1] < rankValues[j]:
@@ -171,7 +171,7 @@ def rankResults(a ,b=12):
     while m < b:
         percent = rankValues[m] / float(drawNo) * 100
         print m + 1,':', rankOrder[m], '-',"{0:.2f}".format(percent), '%'
-        m = m + 1
+        m += 1
     ranks = rankOrder
         
         
@@ -191,19 +191,19 @@ def fixedNumberMonitor():
     while j<20 :
         lnum[j] = int(results[j])
         remCounter(lnum[j])
-        j = j + 1
+        j += 1
     print '-' * 50
 
 
 #This function removes a counter
 def remCounter(nr):
-    numbers[nr - 1] = numbers[nr - 1] - 1
+    numbers[nr - 1] -= 1
     
     
 #This function takes a list and makes a dictionary counting the occurance of values
 def histogram(damount, tnfirst):
     global datenow
-    name = str(datenow) +  str(tnfirst) + str(damount)
+    name = str(datenow) + str(tnfirst) + str(damount)
     ofn = open(name, "r")
     st2 = ofn.read()
     s = st2.split()
@@ -213,7 +213,7 @@ def histogram(damount, tnfirst):
         if c not in d:
             d[c] = 1
         else:
-            d[c] = d[c] + 1
+            d[c] += 1
     ofn = open(name, "w")
     ofn.write(str(d))
     ofn.close()
@@ -227,11 +227,11 @@ def logger(lista, damount, tnfirst):
     i = 0
     while i < tnfirst:
         amList[i] = lista[i]
-        i = i + 1
+        i += 1
     j = 0
     for c in lnum:
         if c in amList:
-            j = j + 1
+            j += 1
     file.write(' ')
     file.write(str(j))
     file.close()
@@ -255,7 +255,7 @@ if mode == '2':
             if Connection == True:
                 print 'Connected to the internet.'
                 loadHistoryDraws(amount)
-                showresults()
+                showResults()
                 rankResults(numbers)
                 saveData()
                 break
@@ -286,9 +286,9 @@ if mode == '1':
                     getDraw()
                     if modechange == '3':
                         fixedNumberMonitor()
-                        drawNo = drawNo - 1
-                    drawNo = drawNo + 1
-                    showresults()
+                        drawNo -= 1
+                    drawNo += + 1
+                    showResults()
                     rankResults(numbers)
                     saveData()
                     time.sleep(300)
