@@ -1,5 +1,6 @@
 '''
 KinoStats
+1.0
 '''
 import urllib
 import xmltodict
