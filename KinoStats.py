@@ -2,7 +2,7 @@
 KinoStats
 1.0
 '''
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import xmltodict
 import os.path
 import time
@@ -19,6 +19,10 @@ uniqueDraw = True
 mode = '0'
 modechange = '0'
 datenow = time.asctime()
+datenow = datenow.replace(" ", "")
+datenow = datenow.replace(":", "")
+datenow = datenow
+mainFile = "C:\\KinoStats" + "\\"
 
 #This function checks to see if you have connection to the internet
 def internet(host="8.8.8.8", port=53, timeout=5):
@@ -27,7 +31,7 @@ def internet(host="8.8.8.8", port=53, timeout=5):
         socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
         return True
     except Exception as ex:
-        print ex.message
+        print(ex.message)
         return False
 
 
@@ -37,8 +41,8 @@ def loadData():
     global drawNo
     global numbers
     j = 0
-    if os.path.exists("kino.txt"):
-        with open("kino.txt", "r") as f:
+    if os.path.exists(mainFile + "kino.txt"):
+        with open(mainFile + "kino.txt", "r") as f:
             data = f.read()
             load = data.split()
             while j<80 :
@@ -46,7 +50,7 @@ def loadData():
                 j += 1
             if j == 80:
                 drawNo = int(load[j])
-                print "Data loaded!"
+                print("Data loaded!")
                 j += 1
                 LastDraw = int(load[j])
                 time.sleep(2)
@@ -54,7 +58,7 @@ def loadData():
 
 #This function saves your data
 def saveData():
-    file = open("kino.txt","w")
+    file = open(mainFile + "kino.txt","w")
     j=0
     while j<80 :
             file.write(str(numbers[j]))
@@ -75,17 +79,17 @@ def addCounter(nr):
 def getDraw():
     global LastDraw
     global amount
-    u = urllib.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
+    u = urllib.request.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
     doc = xmltodict.parse(u)
     results = doc['draw']['result']
     LastDraw = int(doc['draw']['drawNo'])
     i = 0
-    print '-' * 50
-    print 'Winning Numbers:'
+    print('-' * 50)
+    print('Winning Numbers:')
     while i<20 :
         lnum[i] = int(results[i])
         addCounter(lnum[i])
-        print lnum[i]
+        print(lnum[i])
         i += 1
     if modechange == '3':
         logger(ranks, amount, 6)
@@ -96,7 +100,7 @@ def getDraw():
 #This function checks to see if the current draw is the same with the last one            
 def checkLastDraw():
     global LastDraw
-    u = urllib.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
+    u = urllib.request.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
     doc = xmltodict.parse(u)
     if LastDraw!=int(doc['draw']['drawNo']):
         return True
@@ -107,15 +111,14 @@ def checkLastDraw():
 #This fuction show the current percentage of each number
 def showResults():
     global drawNo
-    print 'Showing result for', drawNo, 'draws.'
-    time.sleep(2)
-    print '-' * 50
+    print('Showing result for', drawNo, 'draws.')
+    print('-' * 50)
     j=0
     while j<80 :
         percent = numbers[j] / float(drawNo) * 100
-        print j + 1, ":","{0:.2f}".format(percent), "%"
+        print(j + 1, ":","{0:.2f}".format(percent), "%")
         j += 1
-    print "-" * 50
+    print("-" * 50)
 
 
 #This function loads as much draws requested from the website instead of loading your last data. It overrides your last data but then keeps working normally
@@ -123,7 +126,7 @@ def loadHistoryDraws(amount=100):
     global LastDraw
     global drawNo
     drawNo = amount
-    u = urllib.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
+    u = urllib.request.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
     doc = xmltodict.parse(u)
     LastDraw = int(doc['draw']['drawNo'])
     i = 0
@@ -131,18 +134,18 @@ def loadHistoryDraws(amount=100):
         FirstDraw = LastDraw - amount + 1 + i
         FirstDrawStr = str(FirstDraw)
         opapUrl = 'http://applications.opap.gr/DrawsRestServices/kino/' + FirstDrawStr + '.xml'
-        usite = urllib.urlopen(opapUrl)
+        usite = urllib.request.urlopen(opapUrl)
         docsite = xmltodict.parse(usite)
         results = docsite['draw']['result']
         rNo= i + 1
-        print rNo, 'Out of', amount
+        print(rNo, 'Out of', amount)
         i += 1
         j = 0
         while j<20 :
             lnum[j] = int(results[j])
             addCounter(lnum[j])
             j += 1
-    print '-' * 50
+    print('-' * 50)
         
         
 #This function sort the list and shows the top values. The default value is 10
@@ -166,12 +169,12 @@ def rankResults(a ,b=12):
                 rankOrder[j-1] = rankOrder[j]
                 rankOrder[j] = temp
     m=0
-    print '-' * 50
-    print 'The Top', b, 'numbers in the lottery are:'
-    print '-' * 50
+    print('-' * 50)
+    print('The Top', b, 'numbers in the lottery are:')
+    print('-' * 50)
     while m < b:
         percent = rankValues[m] / float(drawNo) * 100
-        print m + 1,':', rankOrder[m], '-',"{0:.2f}".format(percent), '%'
+        print(m + 1,':', rankOrder[m], '-',"{0:.2f}".format(percent), '%')
         m += 1
     ranks = rankOrder
         
@@ -180,12 +183,12 @@ def rankResults(a ,b=12):
 def fixedNumberMonitor():
     global amount
     global LastDraw
-    u = urllib.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
+    u = urllib.request.urlopen('http://applications.opap.gr/DrawsRestServices/kino/last.xml')
     doc = xmltodict.parse(u)
     RemovedDraw = LastDraw - amount
     RemovedDrawStr = str(RemovedDraw)
     opapUrl = 'http://applications.opap.gr/DrawsRestServices/kino/' + RemovedDrawStr + '.xml'
-    usite = urllib.urlopen(opapUrl)
+    usite = urllib.request.urlopen(opapUrl)
     docsite = xmltodict.parse(usite)
     results = docsite['draw']['result']
     j = 0
@@ -193,7 +196,7 @@ def fixedNumberMonitor():
         lnum[j] = int(results[j])
         remCounter(lnum[j])
         j += 1
-    print '-' * 50
+    print('-' * 50)
 
 
 #This function removes a counter
@@ -204,8 +207,13 @@ def remCounter(nr):
 #This function takes a list and makes a dictionary counting the occurance of values
 def histogram(damount, tnfirst):
     global datenow
-    name = str(datenow) + str(tnfirst) + str(damount)
-    ofn = open(name, "r")
+    global mainFile
+    if not os.path.exists(mainFile + str(damount)):
+        os.makedirs(mainFile + str(damount))
+    if not os.path.exists(mainFile + str(damount) + "\\" + str(tnfirst)):
+        os.makedirs(mainFile + str(damount) + "\\" + str(tnfirst))
+    name = mainFile + str(damount) + '\\' + str(tnfirst) + "\\" + str(datenow) + ".txt"
+    ofn = open(str(name), "r")
     st2 = ofn.read()
     s = st2.split()
     ofn.close()
@@ -215,16 +223,21 @@ def histogram(damount, tnfirst):
             d[c] = 1
         else:
             d[c] += 1
-    ofn = open(name, "w")
+    ofn = open(str(name), "w")
     ofn.write(str(d))
     ofn.close()
     
     
 def logger(lista, damount, tnfirst):
     global datenow
-    amList = [0] * tnfirst 
-    name = str(datenow) + str(tnfirst) + str(damount)
-    file = open(name, "a")
+    global mainFile
+    amList = [0] * tnfirst
+    if not os.path.exists(mainFile + str(damount)):
+        os.makedirs(mainFile + str(damount))
+    if not os.path.exists(mainFile + str(damount) + "\\" + str(tnfirst)):
+        os.makedirs(mainFile + str(damount) + "\\" + str(tnfirst))
+    name = mainFile + str(damount) + '\\' + str(tnfirst) + "\\" + str(datenow) + ".txt"
+    file = open(str(name), "a")
     i = 0
     while i < tnfirst:
         amList[i] = lista[i]
@@ -242,10 +255,15 @@ def logger(lista, damount, tnfirst):
 This is the main structure of the program
 '''
 
-print 'Welcome to KinoStats!'
-mode = raw_input('Would you like to monitor the draws live or download previous results?\nExample: last 100 results, the amount is asked.\nIf you choose download mode you can continue monitoring after if you want\n(1 for monitor mode, 2 for download mode)\n')
+
+if not os.path.exists(mainFile):
+    os.makedirs(mainFile)
+ 
+    
+print('Welcome to KinoStats!')
+mode = input('Would you like to monitor the draws live or download previous results?\nExample: last 100 results, the amount is asked.\nIf you choose download mode you can continue monitoring after if you want\n(1 for monitor mode, 2 for download mode)\n')
 if mode == '2':
-    amount = raw_input('How many draws would you like to load?(If you do not enter a value it will be set as default, which is 100)')
+    amount = input('How many draws would you like to load?(If you do not enter a value it will be set as default, which is 100)')
     if amount == "":
         amount = 100
     amount = int(amount)
@@ -254,21 +272,21 @@ if mode == '2':
         try:    
             Connection = internet()
             if Connection == True:
-                print 'Connected to the internet.'
+                print('Connected to the internet.')
                 loadHistoryDraws(amount)
                 showResults()
                 rankResults(numbers)
                 saveData()
                 break
             else:
-                print 'No connection to the internet\nTrying again...'
-                print '-' * 50
+                print('No connection to the internet\nTrying again...')
+                print('-' * 50)
                 time.sleep(10)
                 
         except KeyboardInterrupt:
             break
 
-    modechange = raw_input('Would you like to continue monitoring?(1 for Yes,2 for No, 3 for fixed amount monitoring)\n')
+    modechange = input('Would you like to continue monitoring?(1 for Yes,2 for No, 3 for fixed amount monitoring)\n')
     if modechange == '1' or modechange == '3':
         mode = '1'
     
@@ -282,7 +300,7 @@ if mode == '1':
             Connection = internet()
             if Connection == True:
                 uniqueDraw = checkLastDraw()
-                print 'Connected to the internet.'
+                print('Connected to the internet.')
                 if uniqueDraw == True:
                     getDraw()
                     if modechange == '3':
@@ -294,19 +312,19 @@ if mode == '1':
                     saveData()
                     time.sleep(300)
                 else:
-                    print 'This draw has been already stated\nTrying again...'
-                    print '-' * 50
+                    print('This draw has been already stated\nTrying again...')
+                    print('-' * 50)
                     time.sleep(20)
             else:
-                print 'No connection to the internet\nTrying again...'
-                print '-' * 50
+                print('No connection to the internet\nTrying again...')
+                print('-' * 50)
                 time.sleep(10)
         except KeyboardInterrupt:
             break
 
-print 'Gathering finished'
+print('Gathering finished')
 
-topAmount = raw_input('How many top numbers do you want to view?(Number)\n')
+topAmount = input('How many top numbers do you want to view?(Number)\n')
 topAmount = int(topAmount)
 rankResults(numbers, topAmount)
 histogram(amount, 6)
